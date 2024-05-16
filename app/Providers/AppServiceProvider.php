@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Http\Beecoded\Client;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
