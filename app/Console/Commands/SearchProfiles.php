@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Beecoded\Client;
-use App\Http\Beecoded\ProviderProfile;
+use App\Beecoded\Client;
+use App\Beecoded\ProviderProfile;
+use App\Beecoded\ProviderProfiles;
+use App\Beecoded\ProviderSearchParams;
 use App\Models\Profile;
 use App\Models\Provider;
 use App\Models\SearchResult;
@@ -47,9 +49,9 @@ class SearchProfiles extends Command
         while ($continue) {
             $filledSearchableFields = $this->getFilledSearchableFields();
             foreach ($providers as $provider) {
-                $searchFields = json_decode($provider->search_fields);
-                $providerParams = $this->mapSearchFieldsToFilledSearchableFields($searchFields, $filledSearchableFields);
-                $profileResults = $this->client->searchProvider($provider->endpoint, $providerParams);
+                $providerSearchParams = new ProviderSearchParams(json_decode($provider->search_fields));
+                $providerSearchParams = $providerSearchParams->load($filledSearchableFields);
+                $profileResults = $this->client->searchProvider($provider->endpoint, $providerSearchParams);
                 info('Provider: ' . $provider->endpoint);
                 if ($profileResults->isEmpty()) {
                     warning('Empty results');
@@ -57,10 +59,10 @@ class SearchProfiles extends Command
                 }
                 $searchResult = new SearchResult();
                 $searchResult->provider_id = $provider->id;
-                $searchResult->search_params = json_encode($providerParams);
+                $searchResult->search_params = json_encode($providerSearchParams);
                 $searchResult->search_result = json_encode($profileResults);
                 $searchResult->save();
-                table(['emails'], collect($profileResults->getEmails())->map(fn($email)=>[$email]));
+                $this->displayResults($profileResults);
                 /** @var ProviderProfile $profileResult */
                 foreach ($profileResults as $profileResult) {
                     $profile = Profile::where('email', $profileResult->email)->first();
@@ -77,16 +79,6 @@ class SearchProfiles extends Command
         }
     }
 
-    private function mapSearchFieldsToFilledSearchableFields(array $searchFields, array $filledSearchableFields): array
-    {
-        $searchParams = [];
-        foreach ($searchFields as $searchField) {
-            $searchParams[$searchField] = $filledSearchableFields[$searchField];
-        }
-
-        return $searchParams;
-    }
-
     private function getFilledSearchableFields(): array
     {
         $providersSearchableFields = Provider::getAllSearchableFields();
@@ -99,5 +91,10 @@ class SearchProfiles extends Command
         }
 
         return $filledSearchableFields;
+    }
+
+    private function displayResults(ProviderProfiles $profileResults): void
+    {
+        table(['emails'], collect($profileResults->getEmails())->map(fn($email) => [$email]));
     }
 }
