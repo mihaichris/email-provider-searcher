@@ -2,7 +2,9 @@
 
 namespace App\Beecoded;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Client
 {
@@ -21,7 +23,12 @@ class Client
     public function searchProvider(string $providerEndpoint, ProviderSearchParams $providerParams): ProviderProfiles
     {
         $providerResponses = new ProviderProfiles();
-        $response = $this->httpClient->get($providerEndpoint, $providerParams);
+        try {
+            $response = $this->httpClient->get($providerEndpoint, $providerParams);
+        } catch (ConnectionException $e) {
+            Log::error('Failed request to the API.', ['exception' => $e]);
+            return $providerResponses;
+        }
         if ($response->badRequest()) {
             return $providerResponses;
         }

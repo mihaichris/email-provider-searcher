@@ -95,6 +95,6 @@ class SearchProfiles extends Command
 
     private function displayResults(ProviderProfiles $profileResults): void
     {
-        table(['emails'], collect($profileResults->getEmails())->map(fn($email) => [$email]));
+        table(['Emails'], collect($profileResults->getEmails())->map(fn($email) => [$email]));
     }
 }
