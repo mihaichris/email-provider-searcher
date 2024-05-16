@@ -44,6 +44,9 @@ class SearchProfiles extends Command
     public function handle()
     {
         $providers = Provider::all();
+        if ($providers->isEmpty()) {
+            warning('No providers in database please run: php artisan migrate:fresh --seed');
+        }
         info('Search profile by criteria:');
         $continue = true;
         while ($continue) {
