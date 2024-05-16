@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Beecoded;
+namespace App\Beecoded;
 
 use Illuminate\Support\Collection;
 

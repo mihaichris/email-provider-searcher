@@ -1,17 +1,14 @@
 <?php
 
-namespace App\Http\Beecoded;
+namespace App\Beecoded;
 
-use Exception;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\RequestException;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class Client
 {
-    public function __construct(private PendingRequest $httpClient)
+    private $httpClient;
+
+    public function __construct()
     {
         $loginResponse = Http::post('http://interview-api.stage1.beecoded.ro/auth/login', [
             'email' => 'beecoded@test.com',
@@ -21,7 +18,7 @@ class Client
         $this->httpClient = Http::withToken($accessToken)->baseUrl('http://interview-api.stage1.beecoded.ro');
     }
 
-    public function searchProvider(string $providerEndpoint, array $providerParams): ProviderProfiles
+    public function searchProvider(string $providerEndpoint, ProviderSearchParams $providerParams): ProviderProfiles
     {
         $providerResponses = new ProviderProfiles();
         $response = $this->httpClient->get($providerEndpoint, $providerParams);
